@@ -28,6 +28,20 @@ static void process_dm( char *deptname, person member, void *state ) {
   putchar( '\n' );
 
   // Task 3: WRITE YOUR CODE HERE
+  if (a->currdept == -1) {
+      a->currdept = 0;
+      strcpy(a->deptname[0], deptname);
+      a->agesum[0] = 0;
+      a->nmembers[0] = 0;
+  }
+  else if (strcmp(deptname, a->deptname[a->currdept]) != 0) {
+      a->currdept++;
+      strcpy(a->deptname[a->currdept], deptname);
+      a->agesum[a->currdept] = 0;
+      a->nmembers[a->currdept] = 0;
+  }
+  a->nmembers[a->currdept]++;
+  a->agesum[a->currdept] += member->age;
 }
 
 

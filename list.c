@@ -14,16 +14,16 @@
 // the data: the actual internal singly linked list
 typedef struct listdata *listdata;
 struct listdata {
-  LIST_ELEMENT  head;
-  listdata   	tail;
+    LIST_ELEMENT head;
+    listdata tail;
 };
 
 // our ADT comprises the data and various element operators.
 struct list {
-  listdata     data;	// the data - the linked list itself
-  list_cmpf    cmpf;	// the element comparator function
-  list_sprintf spef;	// the element sprint function
-  list_freef   fef;	// the element print function
+    listdata data;    // the data - the linked list itself
+    list_cmpf cmpf;    // the element comparator function
+    list_sprintf spef;    // the element sprint function
+    list_freef fef;    // the element print function
 };
 
 
@@ -31,10 +31,15 @@ struct list {
 //   Create an empty list with the given element comparator,
 //   sprint element and free element function pointers.
 //
-list make_list( list_cmpf cmpf, list_sprintf spef, list_freef fef )
-{
-  // Task 2a: WRITE YOUR OWN CODE HERE
-  return NULL;
+list make_list(list_cmpf cmpf, list_sprintf spef, list_freef fef) {
+    // Task 2a: WRITE YOUR OWN CODE HERE
+    list new_list = (list) malloc(sizeof(struct list));
+    assert(new_list != NULL);
+    new_list->cmpf = cmpf;
+    new_list->spef = spef;
+    new_list->fef = fef;
+    new_list->data = NULL;
+    return new_list;
 }
 
 
@@ -42,18 +47,22 @@ list make_list( list_cmpf cmpf, list_sprintf spef, list_freef fef )
 //   Add a list element head to the front of a listdata tail.
 //   Return the new listdata.
 //
-static listdata listdata_cons( LIST_ELEMENT head, listdata tail ) {
-  // Task 2b: WRITE YOUR OWN CODE HERE
-  return NULL;
+static listdata listdata_cons(LIST_ELEMENT head, listdata tail) {
+    // Task 2b: WRITE YOUR OWN CODE HERE
+    listdata new_data = (listdata) malloc(sizeof(struct listdata));
+    assert(new_data != NULL);
+    new_data->head = head;
+    new_data->tail = tail;
+    return new_data;
 }
 
 
 // list_add( l, el );
 //	Add (cons) a list element el to the start of list l, modifying l.
 //
-void list_add( list l, LIST_ELEMENT el ) {
-  assert( l != NULL );
-  l->data = listdata_cons( el, l->data );
+void list_add(list l, LIST_ELEMENT el) {
+    assert(l != NULL);
+    l->data = listdata_cons(el, l->data);
 }
 
 
@@ -65,48 +74,53 @@ void list_add( list l, LIST_ELEMENT el ) {
 //   add v to the list's data at the right place so that the list
 //   REMAINS SORTED, modifying l.
 //
-void list_addsorted( list l, LIST_ELEMENT v ) {
-  assert( l != NULL );
-  listdata new = listdata_cons( v, NULL ); // need a new node with head v.
-  if( l->data == NULL )
-  {
-    l->data = new;
-    return;
-  }
+void list_addsorted(list l, LIST_ELEMENT v) {
+    assert(l != NULL);
+    listdata new = listdata_cons(v, NULL); // need a new node with head v.
+    if (l->data == NULL) {
+        l->data = new;
+        return;
+    }
 
-  assert( l->data != NULL );
+    assert(l->data != NULL);
 
-  // must attach our new node at the right place:
-  if( l->cmpf( l->data->head, v ) >= 0 ) { // if first list element >= v,
-    new->tail = l->data;                   // add the new node at the front
-    l->data = new;
-    return;
-  }
+    // must attach our new node at the right place:
+    if (l->cmpf(l->data->head, v) >= 0) { // if first list element >= v,
+        new->tail = l->data;                   // add the new node at the front
+        l->data = new;
+        return;
+    }
 
-  assert( l->cmpf( l->data->head, v ) < 0 );
+    assert(l->cmpf(l->data->head, v) < 0);
 
-  // otherwise we find THE BEFORE INSERTION POINT bip:
-  // - a node whose head h is <= v (bip->head <= v) and
-  // - EITHER it is the very last node (bip->tail == NULL)
-  //   or the following node's head (bip->tail->head) > v)
-  listdata bip;
+    // otherwise we find THE BEFORE INSERTION POINT bip:
+    // - a node whose head h is <= v (bip->head <= v) and
+    // - EITHER it is the very last node (bip->tail == NULL)
+    //   or the following node's head (bip->tail->head) > v)
+    listdata bip = l->data;
 
-  // Task 2c: WRITE YOUR OWN CODE HERE
+    // Task 2c: WRITE YOUR OWN CODE HERE
+    for (listdata current = l->data; current != NULL; current = current->tail) {
+        if (l->cmpf(current->head, v) > 0) {
+            break;
+        }
+        bip = current;
+    }
 
-  assert( bip != NULL );
-  assert( l->cmpf( bip->head, v ) <= 0 );
-  assert( bip->tail == NULL || l->cmpf( bip->tail->head, v ) > 0 );
+    assert(bip != NULL);
+    assert(l->cmpf(bip->head, v) <= 0);
+    assert(bip->tail == NULL || l->cmpf(bip->tail->head, v) > 0);
 
-  #ifdef BIP_DEBUG
-  char buf[1024];
-  l->spef( buf, bip->head );
-  printf( "debug: addsorted(v=%p): bip is %p, head %s, tail %p\n",
-    v, bip, buf, bip->tail );
-  #endif
+#ifdef BIP_DEBUG
+    char buf[1024];
+    l->spef(buf, bip->head);
+    printf("debug: addsorted(v=%p): bip is %p, head %s, tail %p\n",
+           v, bip, buf, bip->tail);
+#endif
 
-  // add the new node after the insertion point
-  new->tail = bip->tail;
-  bip->tail = new;
+    // add the new node after the insertion point
+    new->tail = bip->tail;
+    bip->tail = new;
 }
 
 
@@ -116,28 +130,27 @@ void list_addsorted( list l, LIST_ELEMENT v ) {
 //	found value, or NULL.  Note: don't assume that the list
 //	is ordered (ie. built by list_addsorted())
 //
-LIST_ELEMENT list_find( list l, LIST_ELEMENT value )
-{
-  assert( l != NULL );
-  listdata ld;
-  for( ld=l->data;
-       ld!=NULL && l->cmpf( ld->head, value ) != 0;
-       ld=ld->tail ) /*EMPTY*/;
-  if( ld==NULL ) return NULL;
-  return ld->head;
+LIST_ELEMENT list_find(list l, LIST_ELEMENT value) {
+    assert(l != NULL);
+    listdata ld;
+    for (ld = l->data;
+         ld != NULL && l->cmpf(ld->head, value) != 0;
+         ld = ld->tail) /*EMPTY*/;
+    if (ld == NULL) return NULL;
+    return ld->head;
 }
 
 
 // int len = list_len( l );
 //   find and return the length of the list l.
 //
-int list_len( list l ) {
-  assert( l != NULL );
-  int len = 0;
-  for( listdata ld = l->data; ld != NULL; ld = ld->tail ) {
-    len++;
-  }
-  return len;
+int list_len(list l) {
+    assert(l != NULL);
+    int len = 0;
+    for (listdata ld = l->data; ld != NULL; ld = ld->tail) {
+        len++;
+    }
+    return len;
 }
 
 
@@ -148,16 +161,15 @@ int list_len( list l ) {
 //   extract the nth element from the list.
 //   abort if list doesn't HAVE n elements.
 //
-LIST_ELEMENT list_nth( int n, list l )
-{
-  assert( l != NULL );
-  listdata p = l->data;
-  for( ; n; n-- ) {
-    assert( p != NULL );
-    p = p->tail;
-  }
-  assert( p != NULL );
-  return p->head;
+LIST_ELEMENT list_nth(int n, list l) {
+    assert(l != NULL);
+    listdata p = l->data;
+    for (; n; n--) {
+        assert(p != NULL);
+        p = p->tail;
+    }
+    assert(p != NULL);
+    return p->head;
 }
 
 
@@ -166,19 +178,19 @@ LIST_ELEMENT list_nth( int n, list l )
 //   here we assume that no single element will occupy more than
 //   1024 characters, hence the char buf[1024] variable
 //
-void list_print( FILE *f, list l ) {
-  assert( l != NULL );
-  listdata     ld   = l->data;
-  list_sprintf spef = l->spef;
-  char buf[1024];
-  fputs( "[ ", f );
-  while( ld != NULL ) {
-    (*spef)( buf, ld->head );
-    fprintf( f, "%s", buf );
-    ld = ld->tail;
-    if( ld != NULL ) fputs( ", ", f );
-  }
-  fputs( " ]", f );
+void list_print(FILE *f, list l) {
+    assert(l != NULL);
+    listdata ld = l->data;
+    list_sprintf spef = l->spef;
+    char buf[1024];
+    fputs("[ ", f);
+    while (ld != NULL) {
+        (*spef)(buf, ld->head);
+        fprintf(f, "%s", buf);
+        ld = ld->tail;
+        if (ld != NULL) fputs(", ", f);
+    }
+    fputs(" ]", f);
 }
 
 
@@ -189,19 +201,19 @@ void list_print( FILE *f, list l ) {
 //   we also assume that no single element will occupy more than
 //   1024 characters, hence the char buf[1024] variable
 //
-void list_sprint( char *s, list l ) {
-  assert( l != NULL );
-  strcpy( s, "[ " );
-  listdata ld = l->data;
-  list_sprintf spef = l->spef;
-  char buf[1024];
-  while( ld != NULL ) {
-    (*spef)( buf, ld->head );
-    strcat( s, buf );
-    ld = ld->tail;
-    if( ld != NULL ) strcat( s, ", " );
-  }
-  strcat( s, " ]" );
+void list_sprint(char *s, list l) {
+    assert(l != NULL);
+    strcpy(s, "[ ");
+    listdata ld = l->data;
+    list_sprintf spef = l->spef;
+    char buf[1024];
+    while (ld != NULL) {
+        (*spef)(buf, ld->head);
+        strcat(s, buf);
+        ld = ld->tail;
+        if (ld != NULL) strcat(s, ", ");
+    }
+    strcat(s, " ]");
 }
 
 
@@ -215,11 +227,11 @@ void list_sprint( char *s, list l ) {
 //   The cbfunc() usually typecasts the state pointer to a ptr-to-what-it-
 //   really-is, and then uses/updates various fields in the real state.
 //
-void list_foreach( list l, list_foreachf cb, void *state ) {
-  assert( l != NULL );
-  for( listdata ld = l->data; ld != NULL; ld = ld->tail ) {
-    (*cb)( ld->head, state );
-  }
+void list_foreach(list l, list_foreachf cb, void *state) {
+    assert(l != NULL);
+    for (listdata ld = l->data; ld != NULL; ld = ld->tail) {
+        (*cb)(ld->head, state);
+    }
 }
 
 
@@ -228,17 +240,17 @@ void list_foreach( list l, list_foreachf cb, void *state ) {
 //   Use the list's free-element-function (fef) to free each
 //   element, if fef is not NULL
 //
-void list_free( list l ) {
-  assert( l != NULL );
-  listdata ld = l->data;
-  list_freef fef = l->fef;
-  while( ld != NULL ) {
-    if( fef != NULL ) {
-      (*fef)( ld->head );
+void list_free(list l) {
+    assert(l != NULL);
+    listdata ld = l->data;
+    list_freef fef = l->fef;
+    while (ld != NULL) {
+        if (fef != NULL) {
+            (*fef)(ld->head);
+        }
+        listdata tail = ld->tail;
+        free(ld);
+        ld = tail;
     }
-    listdata tail = ld->tail;
-    free( ld );
-    ld = tail;
-  }
-  free( l );
+    free(l);
 }
